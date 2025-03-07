@@ -1,1 +1,246 @@
 # Cache-Proxy
+
+Here's a refined version of your text with improved readability and organization:
+
+---
+
+### Caching Proxy Java
+
+A lightweight HTTP caching proxy server implemented in Java. It caches responses from origin servers to enhance performance and reduce bandwidth consumption.
+
+---
+
+### Features
+
+- **HTTP Request Caching**: Utilizes SHA-256 hashing to create cache keys for improved performance.
+- **Transparent Proxying**: Handles both HTTP and HTTPS traffic.
+- **Full Proxy Mode**: Manages all types of requests, including HTTPS via tunneling.
+- **HTTP Methods Support**: Works with GET, POST, PUT, and other HTTP methods.
+- **HTTPS Tunneling**: Supports the CONNECT method for secure tunneling of HTTPS traffic.
+- **Concurrency**: Thread-based request handling for efficient handling of multiple connections.
+- **Command-Line Interface**: Simple, easy-to-use command-line interface.
+- **Cache Management**: Option to clear all cached entries for efficient cache control.
+- **Cache Status**: Includes an X-CACHE header to indicate cache hits or misses.
+
+---
+
+### How It Works
+
+This proxy server sits between client applications and origin servers. When a client sends a request:
+
+1. **Cache Key Calculation**: The proxy generates a unique cache key based on the request method, host, and URL path.
+2. **Cache HIT**: If a cached response exists, it's returned to the client.
+3. **Cache MISS**: If no cached response is found, the proxy forwards the request to the origin server, caches the response, and sends it back to the client.
+4. **X-CACHE Header**: Every response includes an X-CACHE header indicating whether it was served from cache.
+
+In full proxy mode, it handles all traffic, including HTTPS connections through secure tunneling.
+
+---
+
+### Requirements
+
+- **Java 21 or higher**
+
+---
+
+### Quick Start
+
+A pre-built JAR file is available for quick use. You can run the proxy server with the following command:
+
+```
+java -jar caching-proxy.jar --port 8080 --origin http://example.com
+```
+
+---
+
+### Installation
+
+1. **Clone the Repository**:
+   ```
+   git clone https://github.com/ktawiah/caching-proxy.git
+   ```
+
+2. **Navigate to the project directory**:
+   ```
+   cd caching-proxy
+   ```
+
+3. **Build the project using Gradle:**:
+   ```
+   mvn clean install
+   mvn spring-boot:run
+   ```
+---
+
+### Usage
+
+#### Running the Proxy Server
+
+To run the proxy, use the following command:
+
+```
+java -jar caching-proxy.jar --port <PORT_NUMBER> --origin <ORIGIN_URL>
+```
+
+Alternatively, if you're not using the JAR file:
+
+```
+java Main --port <PORT_NUMBER> --origin <ORIGIN_URL>
+```
+
+---
+
+### Command Line Options
+
+- `--port <number>`: **Required**. Specifies the port the proxy will listen on.
+- `--origin <url>`: The origin server URL to forward requests to (required unless using `--full-caching`).
+- `--clear-cache`: Clears the proxy cache and exits the program.
+- `--help, -h`: Displays the help message.
+
+---
+
+### Examples
+
+1. **Start Proxy on Port 3000, Forwarding Requests to DummyJSON**:
+
+   ```
+   caching-proxy --port 3000 --origin http://dummyjson.com
+   ```
+
+2. **Clear Cache**:
+
+   ```
+   java -jar caching-proxy.jar --clear-cache
+   ```
+
+---
+
+### Making Requests
+
+#### Standard Mode (with Specific Origin)
+
+In standard mode (with `--origin` specified), make requests to the proxy as if it were the origin server:
+
+```
+http://localhost:<PORT>/<PATH_TO_RESOURCE>
+```
+
+For example, if your proxy is running on port 3000 and forwarding to dummyjson.com:
+
+```
+http://localhost:3000/products/1
+```
+
+You can use any web client like Postman, cURL, or your browser to make requests.
+
+#### Full Proxy Mode
+
+In full proxy mode, configure your client (browser, system, etc.) to use the proxy as described in the "Configuring Clients" section below.
+
+---
+
+### Configuring Clients to Use the Proxy
+
+#### Browser Configuration
+
+- **Chrome**:  
+  Settings → Advanced → System → Open your computer's proxy settings  
+  Add "localhost" and your specified port.
+
+- **Firefox**:  
+  Settings → General → Network Settings → Manual proxy configuration  
+  Set HTTP Proxy to "localhost" and the port to your specified port.
+
+#### System-Wide Configuration
+
+- **Windows**:  
+  Settings → Network & Internet → Proxy  
+  Enable "Use a proxy server"  
+  Set the address to "localhost" and the port to your proxy port.
+
+- **macOS**:  
+  System Preferences → Network → Advanced → Proxies  
+  Check "Web Proxy (HTTP)" and "Secure Web Proxy (HTTPS)"  
+  Set both to "localhost" and your proxy port.
+
+- **Linux**:  
+  System Settings → Network → Network Proxy  
+  Set Method to "Manual"  
+  Enter "localhost" and your proxy port.
+
+---
+
+### Cache Management
+
+The proxy stores cached responses in the `./cache` directory. Each cached entry is saved as a file, with the filename derived from the SHA-256 hash of the request details.
+
+To clear the cache:
+
+```
+java -jar caching-proxy.jar --clear-cache
+```
+
+---
+
+### Technical Details
+
+#### Caching Mechanism
+
+- Cache keys are generated by SHA-256 hashing the request method and URL.
+- Cache entries are serialized and stored as files in the cache directory, containing the response body, headers, and status line.
+
+#### Request Handling
+
+- Each client connection is handled in a separate thread.
+- Requests are parsed to extract method, URL, HTTP version, headers, and body.
+- The proxy adds an `X-CACHE` header to indicate whether the response was served from cache (HIT) or fetched from the origin server (MISS).
+
+#### HTTPS Support
+
+- The proxy handles HTTPS via the **CONNECT** method:
+  - The client sends a CONNECT request to establish a tunnel.
+  - The proxy creates a direct connection to the destination server.
+  - Data is relayed between client and server without inspection or caching (tunneling only).
+
+---
+
+### Limitations
+
+- No cache invalidation mechanism (other than manual clearing).
+- No cache expiration based on HTTP cache-control headers.
+- Does not support partial content caching (Range requests).
+- Cached content is not compressed or decompressed.
+- HTTPS traffic is tunneled but not cached.
+
+---
+
+### Future Improvements
+
+- Implement cache expiration based on HTTP cache-control headers.
+- Add support for Range requests and partial content caching.
+- Introduce cache validation mechanisms (e.g., If-Modified-Since, ETag).
+- Add automatic cache pruning based on size.
+- Improve error handling and logging.
+- Implement proxy access authentication.
+- Implement content compression/decompression.
+- Add HTTPS inspection and caching using MITM techniques.
+- Implement certificate management for HTTPS caching.
+- Introduce detailed metrics and monitoring.
+
+---
+
+### Contributing
+
+Contributions are welcome! Feel free to submit a pull request.
+
+---
+
+### License
+
+This project is open-source and available under the [MIT License].
+
+---
+
+### Acknowledgments
+
+This project was inspired by the Caching Server project on [roadmap.sh](https://roadmap.sh). Check it out for more great project ideas and learning resources.
